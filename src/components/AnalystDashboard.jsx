@@ -1,7 +1,21 @@
+/**
+ * Analyst dashboard — personal stats + monthly report submission. Only
+ * reachable when the logged-in user's role is 'analyst'.
+ *
+ * DATA SCOPING: this component fetches only the logged-in analyst's record
+ * via api.getAnalystById(user.id) — an analyst never receives other
+ * analysts' data. (In production this scoping would also be enforced
+ * server-side.)
+ *
+ * Two views:
+ *  - 'mystats': four personal KPI cards + plain-language summary
+ *  - 'submit':  monthly activity form -> mock API -> confirmation banner
+ */
 import { useState, useEffect } from 'react'
 import StatCard from './StatCard'
 import { api } from '../api/mockApi'
 
+// Blank form shape. Kept as a constant so submit can reset the form to it.
 const initialForm = {
   lprHits: '',
   lookouts: '',
@@ -10,6 +24,8 @@ const initialForm = {
   intelRequests: '',
 }
 
+// The form is rendered from this array, so adding/removing a field is a
+// one-line change here instead of copy-pasting JSX.
 const formFields = [
   { key: 'lprHits', label: 'LPR Hits' },
   { key: 'lookouts', label: 'LPR Lookouts Issued' },
@@ -19,27 +35,30 @@ const formFields = [
 ]
 
 export default function AnalystDashboard({ user, activeView }) {
-  const [myStats, setMyStats] = useState(null)
-  const [form, setForm] = useState(initialForm)
-  const [submitting, setSubmitting] = useState(false)
-  const [confirmation, setConfirmation] = useState(null)
+  const [myStats, setMyStats] = useState(null)        // this analyst's record (null = loading)
+  const [form, setForm] = useState(initialForm)       // controlled form values
+  const [submitting, setSubmitting] = useState(false) // true while the report POST is in flight
+  const [confirmation, setConfirmation] = useState(null) // API confirmation -> success banner
 
+  // Fetch ONLY this analyst's record. user.id in the dependency array means
+  // a different analyst logging in would trigger a fresh fetch.
   useEffect(() => {
     api.getAnalystById(user.id).then(setMyStats)
   }, [user.id])
 
+  // Generic change handler — updates one field by key, preserving the rest.
   const handleChange = (key, value) => {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault() // stop the browser's default full-page form post
     setSubmitting(true)
-    setConfirmation(null)
+    setConfirmation(null) // clear any previous banner before re-submitting
     const result = await api.submitMonthlyReport(user.id, form)
     setSubmitting(false)
-    setConfirmation(result)
-    setForm(initialForm)
+    setConfirmation(result) // shows the green confirmation banner
+    setForm(initialForm)    // reset fields for the next entry
   }
 
   if (!myStats) {
@@ -50,6 +69,7 @@ export default function AnalystDashboard({ user, activeView }) {
     <div className="p-6 space-y-6">
       {activeView === 'mystats' && (
         <>
+          {/* Personal KPI cards — same StatCard component the admin view uses */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <StatCard label="My LPR Hits This Month" value={myStats.lprHits} icon="🚗" />
             <StatCard label="My Agency Assists" value={myStats.agencies} icon="🤝" />
@@ -57,6 +77,7 @@ export default function AnalystDashboard({ user, activeView }) {
             <StatCard label="Submissions This Month" value={myStats.submissions} icon="📝" />
           </div>
 
+          {/* Plain-language recap of the numbers above */}
           <div className="bg-navy-light border border-navy-lighter rounded-xl p-6">
             <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">
               Performance Summary
@@ -83,11 +104,14 @@ export default function AnalystDashboard({ user, activeView }) {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Fields generated from the formFields array above */}
               {formFields.map(({ key, label }) => (
                 <div key={key}>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     {label}
                   </label>
+                  {/* type="number" + min="0": browser enforces numeric,
+                      non-negative input; `required` blocks empty submits */}
                   <input
                     type="number"
                     min="0"
@@ -109,6 +133,7 @@ export default function AnalystDashboard({ user, activeView }) {
               </button>
             </form>
 
+            {/* Success banner — rendered only after the API confirms receipt */}
             {confirmation && (
               <div className="mt-5 bg-emerald-500/10 border border-emerald-500/40 rounded-lg px-4 py-3">
                 <p className="text-emerald-400 text-sm font-semibold">

@@ -1,12 +1,28 @@
+/*
+ * Global stylesheet — the only CSS file in the project.
+ * Everything else is styled with Tailwind utility classes directly in JSX.
+ */
+
+/* Pull in the entire Tailwind framework (v4 syntax — no tailwind.config.js needed) */
 @import "tailwindcss";
 
+/*
+ * Custom design tokens. Tailwind v4 turns each --color-* variable into a
+ * full set of utilities automatically, e.g.:
+ *   --color-navy-light  ->  bg-navy-light, border-navy-light, text-navy-light...
+ *   --color-accent      ->  text-accent, bg-accent/10 (with opacity), etc.
+ *
+ * Palette rationale: dark navy + electric blue = command-center /
+ * law-enforcement aesthetic with high contrast for chart readability.
+ */
 @theme {
-  --color-navy: #0a1628;
-  --color-navy-light: #112240;
-  --color-navy-lighter: #1a2f52;
-  --color-accent: #00d4ff;
+  --color-navy: #0a1628;         /* page background */
+  --color-navy-light: #112240;   /* cards, sidebar, top nav */
+  --color-navy-lighter: #1a2f52; /* borders, gridlines, hover states */
+  --color-accent: #00d4ff;       /* electric blue — logo, KPIs, buttons, active nav */
 }
 
+/* Global defaults so every view starts dark-themed without repeating classes */
 body {
   background-color: #0a1628;
   color: #e2e8f0;
