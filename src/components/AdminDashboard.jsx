@@ -17,6 +17,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import StatCard from './StatCard'
+import SkeletonCard from './SkeletonCard'
 import { api } from '../api/mockApi'
 import { CHART_COLORS } from '../data/mockData'
 
@@ -37,6 +38,7 @@ export default function AdminDashboard({ activeView }) {
   const [monthlyLpr, setMonthlyLpr] = useState([]) // bar chart data
   const [agencies, setAgencies] = useState([])  // pie chart data
   const [alerts, setAlerts] = useState([])      // line chart data
+  const [search, setSearch] = useState('')      // analyst table filter
 
   // Fire all five requests in parallel on mount (no awaits between them).
   useEffect(() => {
@@ -47,14 +49,25 @@ export default function AdminDashboard({ activeView }) {
     api.getDailyAlerts().then(setAlerts)
   }, [])
 
-  // Gate the whole view on the KPI fetch — simplest meaningful loading state.
   if (!stats) {
-    return <div className="p-8 text-slate-400">Loading command center data...</div>
+    return (
+      <div className="p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }, (_, i) => <SkeletonCard key={i} />)}
+        </div>
+      </div>
+    )
   }
 
   // The bar chart needs one <Bar> per analyst; derive the series list from
   // the analyst records rather than hard-coding names twice.
   const analystNames = analysts.map((a) => a.name)
+
+  // Analyst table rows that match the search input (name or status).
+  const filteredAnalysts = analysts.filter((a) =>
+    a.name.toLowerCase().includes(search.toLowerCase()) ||
+    a.status.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
     <div className="p-6 space-y-6">
@@ -140,9 +153,19 @@ export default function AdminDashboard({ activeView }) {
 
       {activeView === 'analysts' && (
         <div className="bg-navy-light border border-navy-lighter rounded-xl overflow-hidden">
-          <h2 className="text-sm font-semibold text-white uppercase tracking-wider p-5 pb-0">
-            Analyst Activity — Current Month
-          </h2>
+          <div className="p-5 pb-0 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+              Analyst Activity — Current Month
+            </h2>
+            <input
+              type="text"
+              placeholder="Search by name or status…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search analysts"
+              className="text-sm bg-navy border border-navy-lighter rounded-lg px-3 py-1.5 text-white placeholder-slate-600 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors w-56"
+            />
+          </div>
           {/* overflow-x-auto lets the table scroll horizontally on narrow screens */}
           <div className="overflow-x-auto p-5">
             <table className="w-full text-sm">
@@ -157,27 +180,35 @@ export default function AdminDashboard({ activeView }) {
                 </tr>
               </thead>
               <tbody>
-                {analysts.map((a) => (
-                  <tr key={a.id} className="border-b border-navy-lighter/50 hover:bg-navy/50">
-                    <td className="py-3.5 pr-4 font-medium text-white">{a.name}</td>
-                    <td className="py-3.5 pr-4 text-slate-300">{a.submissions}</td>
-                    <td className="py-3.5 pr-4 text-accent font-semibold">{a.lprHits}</td>
-                    <td className="py-3.5 pr-4 text-slate-300">{a.lookouts}</td>
-                    <td className="py-3.5 pr-4 text-slate-300">{a.agencies}</td>
-                    <td className="py-3.5">
-                      {/* Status pill: green = Active, gray = Inactive */}
-                      <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          a.status === 'Active'
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40'
-                            : 'bg-slate-500/15 text-slate-400 border border-slate-500/40'
-                        }`}
-                      >
-                        {a.status}
-                      </span>
+                {filteredAnalysts.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-slate-500 text-sm">
+                      No analysts match &ldquo;{search}&rdquo;
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredAnalysts.map((a) => (
+                    <tr key={a.id} className="border-b border-navy-lighter/50 hover:bg-navy/50">
+                      <td className="py-3.5 pr-4 font-medium text-white">{a.name}</td>
+                      <td className="py-3.5 pr-4 text-slate-300">{a.submissions}</td>
+                      <td className="py-3.5 pr-4 text-accent font-semibold">{a.lprHits}</td>
+                      <td className="py-3.5 pr-4 text-slate-300">{a.lookouts}</td>
+                      <td className="py-3.5 pr-4 text-slate-300">{a.agencies}</td>
+                      <td className="py-3.5">
+                        {/* Status pill: green = Active, gray = Inactive */}
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            a.status === 'Active'
+                              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40'
+                              : 'bg-slate-500/15 text-slate-400 border border-slate-500/40'
+                          }`}
+                        >
+                          {a.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

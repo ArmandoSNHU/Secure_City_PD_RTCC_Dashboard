@@ -62,4 +62,30 @@ describe('AnalystDashboard monthly submission', () => {
     expect(await screen.findAllByText('412')).not.toHaveLength(0) // Maria's LPR hits
     expect(screen.getByText(/my lpr hits this month/i)).toBeInTheDocument()
   })
+
+  it('shows required errors when submitting an empty form', async () => {
+    const user = userEvent.setup()
+    render(<AnalystDashboard user={maria} activeView="submit" />)
+    await screen.findByLabelText(/lpr hits/i) // wait for loading to finish
+    await user.click(screen.getByRole('button', { name: /submit monthly report/i }))
+    // All five fields should show a "Required" error
+    expect(await screen.findAllByText(/required/i)).toHaveLength(5)
+    // Confirmation banner must NOT appear
+    expect(screen.queryByText(/submission confirmed/i)).not.toBeInTheDocument()
+  })
+
+  it('shows a max-exceeded error when a value is too large', async () => {
+    const user = userEvent.setup()
+    render(<AnalystDashboard user={maria} activeView="submit" />)
+
+    await user.type(await screen.findByLabelText(/lpr hits/i), '99999')
+    await user.type(screen.getByLabelText(/lpr lookouts issued/i), '1')
+    await user.type(screen.getByLabelText(/federal agency requests/i), '1')
+    await user.type(screen.getByLabelText(/local agency requests/i), '1')
+    await user.type(screen.getByLabelText(/intelligence requests/i), '1')
+    await user.click(screen.getByRole('button', { name: /submit monthly report/i }))
+
+    expect(await screen.findByText(/maximum is 9,999/i)).toBeInTheDocument()
+    expect(screen.queryByText(/submission confirmed/i)).not.toBeInTheDocument()
+  })
 })

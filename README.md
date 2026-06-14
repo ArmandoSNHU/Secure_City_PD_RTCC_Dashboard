@@ -2,7 +2,7 @@
 
 [![CI / Deploy](https://github.com/ArmandoSNHU/Secure_City_PD_RTCC_Dashboard/actions/workflows/deploy.yml/badge.svg)](https://github.com/ArmandoSNHU/Secure_City_PD_RTCC_Dashboard/actions/workflows/deploy.yml)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-00d4ff?logo=github)](https://armandosnhu.github.io/Secure_City_PD_RTCC_Dashboard/)
-[![Tests](https://img.shields.io/badge/tests-Vitest%20%2B%20RTL-6E9F18?logo=vitest)](#testing--code-quality)
+[![Tests](https://img.shields.io/badge/tests-19%20passing-6E9F18?logo=vitest)](#testing--code-quality)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
 
 A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, built to demonstrate role-based authentication, data visualization, automated testing, CI/CD, and modern React architecture. All data is mocked — no real backend, no real law-enforcement data.
@@ -247,13 +247,14 @@ Layout: fixed 16rem sidebar + fluid main column; stat-card grids collapse from 4
 
 **Why Vitest:** it shares Vite's transform pipeline, so tests run against the exact same JSX/ESM setup as the app with zero extra Babel/Jest config. React Testing Library was chosen because it tests *behavior through the DOM the way a user experiences it* (type into fields, click buttons, read what renders) rather than implementation details.
 
-12 tests across 3 suites:
+19 tests across 4 suites:
 
 | Suite | What it proves |
 |---|---|
 | `src/components/Login.test.jsx` | Bad credentials show the API error and never log in; valid credentials return a user object **with the password stripped**; username matching is case-insensitive |
 | `src/App.test.jsx` | Logged-out users only see the login screen; admin lands on Command Overview with center-wide stats; an analyst lands on My Performance and **cannot see admin views or other analysts' data**; logout fully returns to the login wall |
-| `src/components/AnalystDashboard.test.jsx` | The submission form renders all five fields, submits to the API, shows the confirmation banner, and resets afterward |
+| `src/components/AnalystDashboard.test.jsx` | Form renders all five fields, submits and shows the confirmation banner, resets afterward; empty-form shows required errors; over-max value shows the per-field maximum error |
+| `src/components/AdminDashboard.test.jsx` | KPI cards render after data loads; chart headings appear in overview; all five analysts render in the table; name filter shows only matching rows; clearing the filter restores all rows |
 
 Recharts is mocked in the App suite because jsdom has no layout engine — chart internals aren't what those tests assert; routing and data scoping are.
 
@@ -353,3 +354,4 @@ The project was built in deliberate phases — see **[CHANGELOG.md](CHANGELOG.md
 | 1.1.0 | Documentation: README + header docblocks and inline comments in every source file |
 | 1.2.0 | Deployment: Vite base path + GitHub Actions deploy to GitHub Pages |
 | 1.3.0 | Quality engineering: 12 Vitest/RTL tests, ESLint + Prettier, CI quality gate, accessibility (label/input pairing), badges & screenshots |
+| 1.4.0 | UX polish: skeleton loaders, analyst table search/filter, form validation with inline errors; 19 tests across 4 suites |

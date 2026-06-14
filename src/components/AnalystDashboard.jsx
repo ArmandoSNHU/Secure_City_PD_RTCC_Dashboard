@@ -13,6 +13,7 @@
  */
 import { useState, useEffect } from 'react'
 import StatCard from './StatCard'
+import SkeletonCard from './SkeletonCard'
 import { api } from '../api/mockApi'
 
 // Blank form shape. Kept as a constant so submit can reset the form to it.
@@ -27,17 +28,18 @@ const initialForm = {
 // The form is rendered from this array, so adding/removing a field is a
 // one-line change here instead of copy-pasting JSX.
 const formFields = [
-  { key: 'lprHits', label: 'LPR Hits' },
-  { key: 'lookouts', label: 'LPR Lookouts Issued' },
-  { key: 'federalRequests', label: 'Federal Agency Requests' },
-  { key: 'localRequests', label: 'Local Agency Requests' },
-  { key: 'intelRequests', label: 'Intelligence Requests' },
+  { key: 'lprHits', label: 'LPR Hits', max: 9999 },
+  { key: 'lookouts', label: 'LPR Lookouts Issued', max: 999 },
+  { key: 'federalRequests', label: 'Federal Agency Requests', max: 999 },
+  { key: 'localRequests', label: 'Local Agency Requests', max: 999 },
+  { key: 'intelRequests', label: 'Intelligence Requests', max: 999 },
 ]
 
 export default function AnalystDashboard({ user, activeView }) {
-  const [myStats, setMyStats] = useState(null)        // this analyst's record (null = loading)
-  const [form, setForm] = useState(initialForm)       // controlled form values
-  const [submitting, setSubmitting] = useState(false) // true while the report POST is in flight
+  const [myStats, setMyStats] = useState(null)           // this analyst's record (null = loading)
+  const [form, setForm] = useState(initialForm)          // controlled form values
+  const [formErrors, setFormErrors] = useState({})       // per-field validation errors
+  const [submitting, setSubmitting] = useState(false)    // true while the report POST is in flight
   const [confirmation, setConfirmation] = useState(null) // API confirmation -> success banner
 
   // Fetch ONLY this analyst's record. user.id in the dependency array means
@@ -49,10 +51,33 @@ export default function AnalystDashboard({ user, activeView }) {
   // Generic change handler — updates one field by key, preserving the rest.
   const handleChange = (key, value) => {
     setForm((f) => ({ ...f, [key]: value }))
+    // Clear the error for this field as the user corrects it.
+    if (formErrors[key]) setFormErrors((e) => ({ ...e, [key]: undefined }))
+  }
+
+  const validate = () => {
+    const errors = {}
+    formFields.forEach(({ key, max }) => {
+      const val = Number(form[key])
+      if (form[key] === '') {
+        errors[key] = 'Required'
+      } else if (!Number.isInteger(val) || val < 0) {
+        errors[key] = 'Enter a whole number of 0 or more'
+      } else if (val > max) {
+        errors[key] = `Maximum is ${max.toLocaleString()}`
+      }
+    })
+    return errors
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault() // stop the browser's default full-page form post
+    e.preventDefault()
+    const errors = validate()
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+    setFormErrors({})
     setSubmitting(true)
     setConfirmation(null) // clear any previous banner before re-submitting
     const result = await api.submitMonthlyReport(user.id, form)
@@ -62,7 +87,13 @@ export default function AnalystDashboard({ user, activeView }) {
   }
 
   if (!myStats) {
-    return <div className="p-8 text-slate-400">Loading your performance data...</div>
+    return (
+      <div className="p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }, (_, i) => <SkeletonCard key={i} />)}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -103,26 +134,30 @@ export default function AnalystDashboard({ user, activeView }) {
               Report your activity totals for the current month.
             </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
               {/* Fields generated from the formFields array above */}
-              {formFields.map(({ key, label }) => (
+              {formFields.map(({ key, label, max }) => (
                 <div key={key}>
-                  {/* htmlFor/id pairing: accessible + testable via getByLabelText */}
                   <label htmlFor={key} className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     {label}
                   </label>
-                  {/* type="number" + min="0": browser enforces numeric,
-                      non-negative input; `required` blocks empty submits */}
                   <input
                     id={key}
                     type="number"
                     min="0"
-                    required
+                    max={max}
                     value={form[key]}
                     onChange={(e) => handleChange(key, e.target.value)}
                     placeholder="0"
-                    className="w-full bg-navy border border-navy-lighter rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                    className={`w-full bg-navy border rounded-lg px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-1 transition-colors ${
+                      formErrors[key]
+                        ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500/50'
+                        : 'border-navy-lighter focus:border-accent focus:ring-accent'
+                    }`}
                   />
+                  {formErrors[key] && (
+                    <p className="mt-1 text-xs text-red-400">{formErrors[key]}</p>
+                  )}
                 </div>
               ))}
 

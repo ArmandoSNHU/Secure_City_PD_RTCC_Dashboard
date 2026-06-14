@@ -2,6 +2,19 @@
 
 All notable changes to the Secure City RTCC Analytics Platform, tracked by development phase. Dates use YYYY-MM-DD.
 
+## [1.4.0] — 2026-06-13 — UX Polish & Coverage
+
+### Added
+- **Skeleton loaders**: animated pulse placeholder cards replace plain "Loading…" text in both AdminDashboard and AnalystDashboard while API data is in flight
+- **Analyst table search**: live text filter on the Admin → Analyst Activity view — filters by analyst name or status; shows an empty-state message when no rows match
+- **Form validation**: `AnalystDashboard` submission form now validates on submit (required, non-negative integer, per-field maximum); inline red error messages appear under failing fields; border turns red on error; error clears as the user corrects the field; `noValidate` on the form so the browser doesn't fight the custom messages
+- **AdminDashboard test suite** (`src/components/AdminDashboard.test.jsx`): 5 tests covering KPI cards, chart headings, full analyst table render, name filter, and filter-clear
+- **AnalystDashboard validation tests**: 2 additional tests — empty-form required errors (×5) and max-exceeded error
+
+### Changed
+- `formFields` array extended with `max` per field (LPR Hits: 9,999; all others: 999)
+- Total test count: **12 → 19** across **3 → 4** test files
+
 ## [1.3.0] — 2026-06-11 — Quality Engineering
 
 ### Added
