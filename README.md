@@ -6,10 +6,27 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
 
-A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, built to demonstrate role-based authentication, data visualization, automated testing, CI/CD, and modern React architecture. All data is mocked — no real backend, no real law-enforcement data.
+A role-based analytics platform for **Real Time Crime Centers (RTCCs)** — replacing manual Excel reporting with live KPI dashboards for command staff, performance visibility for analysts, and an interactive system architecture tour for technical reviewers. All data in the current release is mocked; no real law-enforcement data is used.
 
 **Author:** Armando Gomez
 **Live demo:** https://armandosnhu.github.io/Secure_City_PD_RTCC_Dashboard/
+
+---
+
+## Product Overview
+
+RTCC supervisors currently compile analyst activity reports by hand — collecting email submissions, merging spreadsheets, and producing a monthly PDF for command staff. This platform eliminates that process:
+
+| Who | What they get |
+|---|---|
+| **Command / Admin** | Center-wide KPIs, 3 live charts, searchable analyst table, CSV export — updated in real time instead of end-of-month |
+| **Analyst** | Personal KPIs, team ranking, LPR trend chart, and a 2-minute monthly submission form instead of an email thread |
+| **Technical reviewer / Architect** | A 5-section interactive tour: auth flow with annotated code, full component tree, data flow diagram, CI/CD pipeline, and tech stack rationale |
+
+**Differentiator vs. ArcGIS / Esri:** ArcGIS maps *where* crime happens. This platform tracks *how the team is performing* — the accountability layer that justifies RTCC budget and headcount to city leadership.
+
+For go-to-market strategy and agency sales planning, see [`market-plan.md`](market-plan.md).
+For full technical architecture and product roadmap, see [`codex.md`](codex.md).
 
 ---
 
