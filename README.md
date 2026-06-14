@@ -33,13 +33,37 @@ A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, b
 
 ## Screenshots
 
-| Admin — Command Overview | Admin — Analyst Activity |
-|---|---|
-| ![Admin overview](docs/screenshots/admin-overview.png) | ![Analyst activity table](docs/screenshots/admin-analysts.png) |
+### Login & Demo Panel
 
-| Analyst — Monthly Submission | |
+| Login screen — neon shield, demo accounts, system flow | Auto-fill in action — Maria Santos selected |
 |---|---|
-| ![Submission form](docs/screenshots/analyst-submit.png) | *Login screen — dark command-center theme with grid backdrop and shield logo* |
+| ![Login screen](DEMO-CAPTURES/01-Front%20signin.png) | ![Auto-fill](DEMO-CAPTURES/02-Auto-fill.png) |
+
+### Admin Dashboard
+
+| Command Overview — KPIs, bar chart, pie chart, line chart | Analyst Activity — table, search, CSV export |
+|---|---|
+| ![Admin command overview](DEMO-CAPTURES/03-Admin-page.png) | ![Admin analyst activity](DEMO-CAPTURES/04-Admin-page02.png) |
+
+### Analyst Dashboard
+
+| My Performance — personal KPIs, rank badge, trend chart, team ranking |
+|---|
+| ![Analyst my performance](DEMO-CAPTURES/05-Analyst-page.png) |
+
+### System Architect Tour
+
+| Auth Flow — annotated code steps | Component Tree — full hierarchy |
+|---|---|
+| ![Architect auth flow](DEMO-CAPTURES/06-Architect-Auth-flow.png) | ![Architect component tree](DEMO-CAPTURES/07-Architect-Comp-Tree.png) |
+
+| Data Flow — layer diagram + API surface table | CI/CD Pipeline — 4-stage visual + YAML |
+|---|---|
+| ![Architect data flow](DEMO-CAPTURES/08-Architect-Data-Flow.png) | ![Architect CI/CD](DEMO-CAPTURES/09-Architect-CL-CD-pipline.png) |
+
+| Tech Stack — 8 technology cards with why/how detail |
+|---|
+| ![Architect tech stack](DEMO-CAPTURES/0010-Architect-Tech-Stack-.png) |
 
 ---
 
