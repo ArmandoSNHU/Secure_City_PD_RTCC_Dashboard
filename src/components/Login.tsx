@@ -37,6 +37,13 @@ const demoAccounts: DemoAccount[] = [
     label: 'James Rivera',
     description: 'Personal KPIs only — data scoped to his own record',
   },
+  {
+    role: 'architect',
+    username: 'demo',
+    password: 'Demo2026',
+    label: 'System Architect',
+    description: 'Interactive tour — auth flow · component tree · data flow · CI/CD · tech stack',
+  },
 ]
 
 const flowSteps = [
@@ -188,7 +195,9 @@ export default function Login({ onLogin }: Props) {
                     username === account.username
                       ? account.role === 'admin'
                         ? 'border-amber-500/60 bg-amber-500/10'
-                        : 'border-accent/60 bg-accent/10'
+                        : account.role === 'architect'
+                          ? 'border-purple-500/60 bg-purple-500/10'
+                          : 'border-accent/60 bg-accent/10'
                       : 'border-navy-lighter hover:border-accent/40 hover:bg-accent/5'
                   }`}
                 >
@@ -198,7 +207,9 @@ export default function Login({ onLogin }: Props) {
                       className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                         account.role === 'admin'
                           ? 'bg-amber-500/15 text-amber-400 border border-amber-500/40'
-                          : 'bg-accent/10 text-accent border border-accent/40'
+                          : account.role === 'architect'
+                            ? 'bg-purple-500/15 text-purple-400 border border-purple-500/40'
+                            : 'bg-accent/10 text-accent border border-accent/40'
                       }`}
                     >
                       {account.role}

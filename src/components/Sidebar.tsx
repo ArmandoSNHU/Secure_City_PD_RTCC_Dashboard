@@ -22,9 +22,17 @@ const analystItems: NavItem[] = [
   { id: 'mystats', label: 'My Performance', icon: '📈' },
   { id: 'submit', label: 'Monthly Submission', icon: '📝' },
 ]
+const architectItems: NavItem[] = [
+  { id: 'authflow', label: 'Auth Flow', icon: '🔐' },
+  { id: 'components', label: 'Component Tree', icon: '🌳' },
+  { id: 'dataflow', label: 'Data Flow', icon: '🔄' },
+  { id: 'cicd', label: 'CI/CD Pipeline', icon: '🚀' },
+  { id: 'techstack', label: 'Tech Stack', icon: '⚙️' },
+]
 
 export default function Sidebar({ user, activeView, onNavigate, onLogout }: Props) {
-  const items = user.role === 'admin' ? adminItems : analystItems
+  const items =
+    user.role === 'admin' ? adminItems : user.role === 'architect' ? architectItems : analystItems
 
   return (
     <aside className="w-64 min-h-screen bg-navy-light border-r border-navy-lighter flex flex-col shrink-0">

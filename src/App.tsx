@@ -5,14 +5,29 @@ import Sidebar from './components/Sidebar'
 import TopNav from './components/TopNav'
 import AdminDashboard from './components/AdminDashboard'
 import AnalystDashboard from './components/AnalystDashboard'
+import ArchitectView from './components/ArchitectView'
 
-type ViewId = 'overview' | 'analysts' | 'mystats' | 'submit'
+type ViewId =
+  | 'overview'
+  | 'analysts'
+  | 'mystats'
+  | 'submit'
+  | 'authflow'
+  | 'components'
+  | 'dataflow'
+  | 'cicd'
+  | 'techstack'
 
 const viewTitles: Record<ViewId, string> = {
   overview: 'Command Overview',
   analysts: 'Analyst Activity',
   mystats: 'My Performance',
   submit: 'Monthly Submission',
+  authflow: 'Authentication Flow',
+  components: 'Component Tree',
+  dataflow: 'Data Flow',
+  cicd: 'CI/CD Pipeline',
+  techstack: 'Tech Stack',
 }
 
 export default function App() {
@@ -21,7 +36,9 @@ export default function App() {
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser)
-    setActiveView(loggedInUser.role === 'admin' ? 'overview' : 'mystats')
+    if (loggedInUser.role === 'admin') setActiveView('overview')
+    else if (loggedInUser.role === 'architect') setActiveView('authflow')
+    else setActiveView('mystats')
   }
 
   const handleLogout = () => setUser(null)
@@ -40,11 +57,9 @@ export default function App() {
       />
       <div className="flex-1 min-w-0">
         <TopNav user={user} title={viewTitles[activeView]} />
-        {user.role === 'admin' ? (
-          <AdminDashboard activeView={activeView} />
-        ) : (
-          <AnalystDashboard user={user} activeView={activeView} />
-        )}
+        {user.role === 'admin' && <AdminDashboard activeView={activeView} />}
+        {user.role === 'analyst' && <AnalystDashboard user={user} activeView={activeView} />}
+        {user.role === 'architect' && <ArchitectView activeView={activeView} />}
       </div>
     </div>
   )

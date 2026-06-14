@@ -7,6 +7,7 @@ export const users: User[] = [
   { id: 3, username: 'Carlos Vega', name: 'Carlos Vega', role: 'analyst' },
   { id: 4, username: 'Priya Nair', name: 'Priya Nair', role: 'analyst' },
   { id: 5, username: 'Derek Thompson', name: 'Derek Thompson', role: 'analyst' },
+  { id: 6, username: 'demo', name: 'System Architect', role: 'architect' },
 ]
 
 // Credentials kept separate so the User type never exposes them.
@@ -17,6 +18,7 @@ export const credentials: Record<string, string> = {
   'Carlos Vega': 'analyst03',
   'Priya Nair': 'analyst04',
   'Derek Thompson': 'analyst05',
+  demo: 'Demo2026',
 }
 
 export const overviewStats: OverviewStats = {
