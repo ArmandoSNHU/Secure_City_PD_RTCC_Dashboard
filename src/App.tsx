@@ -30,6 +30,12 @@ const viewTitles: Record<ViewId, string> = {
   techstack: 'Tech Stack',
 }
 
+const viewSequence: Record<string, ViewId[]> = {
+  admin: ['overview', 'analysts'],
+  analyst: ['mystats', 'submit'],
+  architect: ['authflow', 'components', 'dataflow', 'cicd', 'techstack'],
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [activeView, setActiveView] = useState<ViewId>('overview')
@@ -47,6 +53,13 @@ export default function App() {
     return <Login onLogin={handleLogin} />
   }
 
+  const sequence = viewSequence[user.role] ?? []
+  const currentIndex = sequence.indexOf(activeView)
+  const canGoBack = currentIndex > 0
+  const canGoForward = currentIndex < sequence.length - 1
+  const goBack = () => { if (canGoBack) setActiveView(sequence[currentIndex - 1]) }
+  const goForward = () => { if (canGoForward) setActiveView(sequence[currentIndex + 1]) }
+
   return (
     <div className="flex min-h-screen bg-navy">
       <Sidebar
@@ -56,7 +69,14 @@ export default function App() {
         onLogout={handleLogout}
       />
       <div className="flex-1 min-w-0">
-        <TopNav user={user} title={viewTitles[activeView]} />
+        <TopNav
+          user={user}
+          title={viewTitles[activeView]}
+          canGoBack={canGoBack}
+          canGoForward={canGoForward}
+          onBack={goBack}
+          onForward={goForward}
+        />
         {user.role === 'admin' && <AdminDashboard activeView={activeView} />}
         {user.role === 'analyst' && <AnalystDashboard user={user} activeView={activeView} />}
         {user.role === 'architect' && <ArchitectView activeView={activeView} />}
