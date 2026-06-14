@@ -1,10 +1,16 @@
-# Builds the Vite app and deploys the static output (dist/) to GitHub Pages
-# on every push to main. Requires: repo Settings -> Pages -> Source set to
-# "GitHub Actions".
-name: Deploy to GitHub Pages
+# CI/CD pipeline: quality gate -> build -> deploy.
+#
+#   quality  - ESLint + full Vitest suite. If either fails, nothing deploys.
+#   build    - production Vite build, uploaded as a Pages artifact.
+#   deploy   - publishes the artifact to GitHub Pages.
+#
+# Requires: repo Settings -> Pages -> Source set to "GitHub Actions".
+name: CI / Deploy to GitHub Pages
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch: # allows manual runs from the Actions tab
 
@@ -19,7 +25,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ---- Quality gate: lint + tests must pass before anything builds ----
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+
+  # ---- Build: only runs if the quality gate passed ----
   build:
+    needs: quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +56,9 @@ jobs:
         with:
           path: dist
 
+  # ---- Deploy: publish to Pages, but never from pull requests ----
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:

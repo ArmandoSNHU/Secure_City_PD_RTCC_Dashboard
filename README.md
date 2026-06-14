@@ -1,8 +1,43 @@
 # Secure City RTCC Analytics Platform
 
-A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, built to demonstrate role-based authentication, data visualization, and modern React architecture. All data is mocked — no real backend, no real law-enforcement data.
+[![CI / Deploy](https://github.com/ArmandoSNHU/Secure_City_PD_RTCC_Dashboard/actions/workflows/deploy.yml/badge.svg)](https://github.com/ArmandoSNHU/Secure_City_PD_RTCC_Dashboard/actions/workflows/deploy.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-00d4ff?logo=github)](https://armandosnhu.github.io/Secure_City_PD_RTCC_Dashboard/)
+[![Tests](https://img.shields.io/badge/tests-Vitest%20%2B%20RTL-6E9F18?logo=vitest)](#testing--code-quality)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
+
+A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, built to demonstrate role-based authentication, data visualization, automated testing, CI/CD, and modern React architecture. All data is mocked — no real backend, no real law-enforcement data.
 
 **Author:** Armando Gomez
+**Live demo:** https://armandosnhu.github.io/Secure_City_PD_RTCC_Dashboard/
+
+---
+
+## Skills Demonstrated
+
+| Skill area | What this project shows |
+|---|---|
+| **React 18 — hooks & state** | `useState` / `useEffect` across Login, Admin, and Analyst components; controlled forms; async data fetching with loading states |
+| **Role-based access control** | Auth state drives rendering — an analyst physically cannot reach admin views; the API strips passwords before returning user objects |
+| **API abstraction layer** | `mockApi.js` wraps all data behind async functions with simulated latency; swapping in a real backend is a one-file change |
+| **Data visualization** | Recharts grouped bar, pie, and line charts — all fed from plain JS objects, no transformation layer needed |
+| **Responsive UI / design system** | Tailwind CSS 4 with custom `@theme` tokens (`navy`, `accent`); stat cards collapse from 4 → 2 → 1 columns |
+| **Automated testing** | 12 Vitest + React Testing Library tests covering credential rejection, password stripping, role routing, data scoping, and form submission |
+| **CI/CD pipeline** | GitHub Actions quality gate (lint → tests) must pass before any build or deploy; PRs are gated but never deploy |
+| **Accessibility** | Every form input has a paired `<label htmlFor>` — accessible to screen readers and directly queryable in tests |
+| **Component architecture** | Shared `StatCard`, inline SVG `ShieldLogo`, view-array-driven form fields — DRY without premature abstraction |
+| **Dev tooling** | ESLint flat config, Prettier, `npm ci` lockfile installs, separate `vitest.config.js` to avoid Tailwind/base-path leaking into tests |
+
+---
+
+## Screenshots
+
+| Admin — Command Overview | Admin — Analyst Activity |
+|---|---|
+| ![Admin overview](docs/screenshots/admin-overview.png) | ![Analyst activity table](docs/screenshots/admin-analysts.png) |
+
+| Analyst — Monthly Submission | |
+|---|---|
+| ![Submission form](docs/screenshots/analyst-submit.png) | *Login screen — dark command-center theme with grid backdrop and shield logo* |
 
 ---
 
@@ -15,9 +50,12 @@ A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, b
 5. [How Data Flows Through the App](#how-data-flows-through-the-app)
 6. [The Two Dashboards](#the-two-dashboards)
 7. [Design System](#design-system)
-8. [Running the Project](#running-the-project)
-9. [Test Credentials](#test-credentials)
-10. [Swapping the Mock API for a Real Backend](#swapping-the-mock-api-for-a-real-backend)
+8. [Testing & Code Quality](#testing--code-quality)
+9. [CI/CD Pipeline](#cicd-pipeline)
+10. [Running the Project](#running-the-project)
+11. [Test Credentials](#test-credentials)
+12. [Swapping the Mock API for a Real Backend](#swapping-the-mock-api-for-a-real-backend)
+13. [Development Progress](#development-progress)
 
 ---
 
@@ -51,22 +89,34 @@ The goal was to build something that *behaves* like a production app (async API 
 Secure_City_PD_RTCC_Dashboard/
 ├── index.html                  # HTML shell; mounts React at #root
 ├── package.json                # Dependencies and npm scripts
-├── vite.config.js              # Vite config: React plugin + Tailwind plugin
+├── vite.config.js              # Vite config: React + Tailwind plugins, Pages base path
+├── vitest.config.js            # Test runner config (jsdom, globals, setup file)
+├── eslint.config.js            # ESLint flat config (correctness rules only)
+├── .prettierrc.json            # Prettier formatting rules
+├── CHANGELOG.md                # Development progress by phase
 ├── .gitignore                  # Excludes node_modules, dist, local files
+├── .github/workflows/
+│   └── deploy.yml              # CI/CD: quality gate -> build -> Pages deploy
+├── docs/screenshots/           # README screenshot images
 └── src/
     ├── main.jsx                # Entry point; renders <App/> into the DOM
     ├── index.css               # Tailwind import + @theme design tokens + body defaults
     ├── App.jsx                 # Root component: auth state + role-based routing
+    ├── App.test.jsx            # Integration tests: login -> routing -> logout
+    ├── test/
+    │   └── setup.js            # Registers jest-dom matchers before each test file
     ├── api/
     │   └── mockApi.js          # Fake REST layer (login, stats, charts, submissions)
     ├── data/
     │   └── mockData.js         # All mock records: users, stats, chart datasets
     └── components/
         ├── Login.jsx           # Dark-themed login screen with credential validation
+        ├── Login.test.jsx      # Credential validation + password-stripping tests
         ├── Sidebar.jsx         # Role-aware navigation + logout
         ├── TopNav.jsx          # Sticky header: view title, user name, role badge
         ├── AdminDashboard.jsx  # Center-wide stats, 3 charts, analyst table
         ├── AnalystDashboard.jsx# Personal stats + monthly submission form
+        ├── AnalystDashboard.test.jsx # Submission form behavior tests
         ├── StatCard.jsx        # Reusable KPI card (icon, value, label)
         └── ShieldLogo.jsx      # Inline SVG police shield, used on login + sidebar
 ```
@@ -191,11 +241,67 @@ Layout: fixed 16rem sidebar + fluid main column; stat-card grids collapse from 4
 
 ---
 
+## Testing & Code Quality
+
+### Unit & integration tests — Vitest + React Testing Library
+
+**Why Vitest:** it shares Vite's transform pipeline, so tests run against the exact same JSX/ESM setup as the app with zero extra Babel/Jest config. React Testing Library was chosen because it tests *behavior through the DOM the way a user experiences it* (type into fields, click buttons, read what renders) rather than implementation details.
+
+12 tests across 3 suites:
+
+| Suite | What it proves |
+|---|---|
+| `src/components/Login.test.jsx` | Bad credentials show the API error and never log in; valid credentials return a user object **with the password stripped**; username matching is case-insensitive |
+| `src/App.test.jsx` | Logged-out users only see the login screen; admin lands on Command Overview with center-wide stats; an analyst lands on My Performance and **cannot see admin views or other analysts' data**; logout fully returns to the login wall |
+| `src/components/AnalystDashboard.test.jsx` | The submission form renders all five fields, submits to the API, shows the confirmation banner, and resets afterward |
+
+Recharts is mocked in the App suite because jsdom has no layout engine — chart internals aren't what those tests assert; routing and data scoping are.
+
+```bash
+npm test            # run the suite once (what CI runs)
+npm run test:watch  # watch mode during development
+npm run test:coverage
+```
+
+### Linting & formatting — ESLint + Prettier
+
+- **ESLint** (flat config, `eslint.config.js`) enforces correctness: recommended JS rules, `react-hooks/rules-of-hooks` + `exhaustive-deps`, and react-refresh safety. `eslint-config-prettier` is layered last so ESLint never fights the formatter.
+- **Prettier** (`.prettierrc.json`) owns all formatting decisions.
+
+```bash
+npm run lint          # what CI runs
+npm run format        # rewrite files in place
+npm run format:check
+```
+
+---
+
+## CI/CD Pipeline
+
+Every push to `main` (and every pull request) runs the GitHub Actions pipeline in `.github/workflows/deploy.yml`:
+
+```
+push/PR ──▶ quality (lint + 12 tests) ──▶ build (vite build) ──▶ deploy (GitHub Pages)
+                  │ fails?                                            │
+                  ▼                                                   ▼
+            nothing deploys                            https://armandosnhu.github.io/...
+```
+
+Design decisions:
+- **Quality gate first** — `build` declares `needs: quality`, so broken code can never reach production.
+- **PRs run the gate but never deploy** — the deploy job is skipped for `pull_request` events.
+- **Concurrency control** — a newer push cancels an in-flight deploy of stale code.
+- **`npm ci`** (not `npm install`) for reproducible installs from the lockfile.
+
+---
+
 ## Running the Project
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
+npm test         # run the test suite
+npm run lint     # lint check
 npm run build    # production build to dist/
 npm run preview  # serve the production build locally
 ```
@@ -234,3 +340,16 @@ async login(username, password) {
 ```
 
 A natural backend pairing would be Java + Spring Boot (REST controllers matching each `api.*` function, Spring Security for auth, PostgreSQL for analyst records) — the mock API's function signatures were designed to map one-to-one onto REST endpoints.
+
+---
+
+## Development Progress
+
+The project was built in deliberate phases — see **[CHANGELOG.md](CHANGELOG.md)** for the full history:
+
+| Phase | Delivered |
+|---|---|
+| 1.0.0 | Core dashboard: auth, role routing, charts, submission form, mock API |
+| 1.1.0 | Documentation: README + header docblocks and inline comments in every source file |
+| 1.2.0 | Deployment: Vite base path + GitHub Actions deploy to GitHub Pages |
+| 1.3.0 | Quality engineering: 12 Vitest/RTL tests, ESLint + Prettier, CI quality gate, accessibility (label/input pairing), badges & screenshots |

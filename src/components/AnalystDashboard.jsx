@@ -107,12 +107,14 @@ export default function AnalystDashboard({ user, activeView }) {
               {/* Fields generated from the formFields array above */}
               {formFields.map(({ key, label }) => (
                 <div key={key}>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  {/* htmlFor/id pairing: accessible + testable via getByLabelText */}
+                  <label htmlFor={key} className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     {label}
                   </label>
                   {/* type="number" + min="0": browser enforces numeric,
                       non-negative input; `required` blocks empty submits */}
                   <input
+                    id={key}
                     type="number"
                     min="0"
                     required
