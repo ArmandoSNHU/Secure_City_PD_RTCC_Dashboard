@@ -1,10 +1,11 @@
 interface Props {
   size?: number
+  glow?: boolean
 }
 
-export default function ShieldLogo({ size = 48 }: Props) {
+export default function ShieldLogo({ size = 48, glow = false }: Props) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={glow ? 'neon-logo' : ''}>
       <path
         d="M32 4L8 12v16c0 15.5 10.2 28.6 24 32 13.8-3.4 24-16.5 24-32V12L32 4z"
         fill="#112240"

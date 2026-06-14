@@ -110,14 +110,16 @@ export default function Login({ onLogin }: Props) {
           backgroundSize: '48px 48px',
         }}
       />
+      {/* Scanning neon line */}
+      <div className="scan-line" />
 
       <div className="relative w-full max-w-5xl flex flex-col xl:flex-row gap-6 items-start xl:items-center">
 
         {/* ── LEFT: Login form ─────────────────────────────────── */}
         <div className="w-full xl:w-96 shrink-0">
-          <div className="bg-navy-light border border-navy-lighter rounded-2xl p-8 shadow-2xl shadow-accent/5">
+          <div className="bg-navy-light border border-accent/20 rounded-2xl p-8 shadow-2xl shadow-accent/10 neon-border">
             <div className="flex flex-col items-center mb-8">
-              <ShieldLogo size={72} />
+              <ShieldLogo size={72} glow />
               <h1 className="text-2xl font-bold text-white mt-4 tracking-wide">
                 Secure City PD - RTCC
               </h1>
@@ -165,7 +167,7 @@ export default function Login({ onLogin }: Props) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-accent text-navy font-bold py-3 rounded-lg hover:bg-accent/90 disabled:opacity-50 transition-colors uppercase tracking-wider text-sm"
+                className="w-full bg-accent text-navy font-bold py-3 rounded-lg hover:bg-accent/90 disabled:opacity-50 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(0,212,255,0.25)] hover:shadow-[0_0_32px_rgba(0,212,255,0.55)]"
               >
                 {loading ? 'Authenticating...' : 'Secure Login'}
               </button>

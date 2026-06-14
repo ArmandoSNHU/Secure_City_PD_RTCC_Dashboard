@@ -18,7 +18,7 @@ export default function TopNav({ user, title, canGoBack, canGoForward, onBack, o
         : 'bg-accent/10 text-accent border border-accent/40'
 
   return (
-    <header className="h-16 bg-navy-light border-b border-navy-lighter flex items-center justify-between px-6 sticky top-0 z-10">
+    <header className="h-16 bg-navy-light border-b border-accent/20 flex items-center justify-between px-6 sticky top-0 z-10 shadow-[0_1px_16px_rgba(0,212,255,0.12)]">
       {/* Back / Forward + title */}
       <div className="flex items-center gap-3">
         <button
