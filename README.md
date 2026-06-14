@@ -174,6 +174,107 @@ Secure_City_PD_RTCC_Dashboard/
 
 ---
 
+## Architecture Diagrams
+
+### Login & Authentication Flow
+
+```mermaid
+flowchart TD
+    A([User visits app]) --> B[Login Screen\nLogin.tsx]
+    B -->|types credentials| C[handleSubmit]
+    C --> D[api.login\nmockApi.ts]
+    D --> E{credentials\nmatch?}
+    E -->|No| F[throw Error]
+    F --> G[setError → red alert]
+    G --> B
+    E -->|Yes| H[destructure password out\nreturn safe User object]
+    H --> I[App.handleLogin\nApp.tsx]
+    I --> J{user.role?}
+    J -->|admin| K[setActiveView → overview\nAdminDashboard.tsx]
+    J -->|analyst| L[setActiveView → mystats\nAnalystDashboard.tsx]
+    K --> M[Command Overview\n4 KPIs · 3 charts · analyst table\nsearch filter · CSV export]
+    L --> N[My Performance\npersonal KPIs · monthly form\ndata scoped to user.id]
+```
+
+### Component Tree
+
+```mermaid
+graph TD
+    App[App.tsx\nauth state · role routing] --> Login[Login.tsx\ncontrolled form · demo panel]
+    App --> Sidebar[Sidebar.tsx\nrole-aware nav · logout]
+    App --> TopNav[TopNav.tsx\nsticky header · role badge]
+    App --> Admin[AdminDashboard.tsx\ncenter-wide data]
+    App --> Analyst[AnalystDashboard.tsx\npersonal data only]
+    Admin --> SC[StatCard.tsx\nreusable KPI card]
+    Admin --> SK[SkeletonCard.tsx\nloading placeholder]
+    Analyst --> SC
+    Analyst --> SK
+    Sidebar --> SL[ShieldLogo.tsx\ninline SVG]
+    Login --> SL
+```
+
+### Data Flow
+
+```mermaid
+flowchart LR
+    subgraph DataLayer["📦 Data Layer"]
+        MD[mockData.ts\nusers · stats · charts]
+        CR[credentials map\nseparated from User type]
+    end
+    subgraph ApiLayer["🔌 API Layer  mockApi.ts"]
+        LG[login\nvalidate + strip pwd]
+        GS[getOverviewStats]
+        GA[getAnalystStats / getAnalystById]
+        GM[getMonthlyLpr · getAgencies · getAlerts]
+        SR[submitMonthlyReport]
+    end
+    subgraph UILayer["⚛️ Component Layer"]
+        AD[AdminDashboard\nparallel fetch ×5\nuseEffect on mount]
+        ALD[AnalystDashboard\nfetch by user.id only]
+    end
+    MD --> LG
+    CR --> LG
+    MD --> GS & GA & GM & SR
+    GS & GA & GM --> AD
+    GA & SR --> ALD
+    AD --> S1[useState slices\none per dataset]
+    ALD --> S2[useState slices]
+    S1 --> UI1[Admin UI renders]
+    S2 --> UI2[Analyst UI renders]
+```
+
+### CI/CD Pipeline
+
+```mermaid
+flowchart LR
+    Push[git push to main\nor pull request] --> Q
+
+    subgraph Q["quality job  ubuntu-latest"]
+        Q1[npm ci] --> Q2[eslint .]
+        Q2 --> Q3[vitest run\n19 tests]
+    end
+
+    Q -->|any step fails| Stop([❌ pipeline stops\nnothing builds or deploys])
+    Q -->|all pass| B
+
+    subgraph B["build job  needs: quality"]
+        B1[npm ci] --> B2[vite build\noutput → dist/]
+        B2 --> B3[upload Pages artifact]
+    end
+
+    B --> D
+
+    subgraph D["deploy job  push only"]
+        D1[deploy to\nGitHub Pages]
+    end
+
+    D --> Live([✅ live at\narmandosnhu.github.io])
+    Push -->|pull_request event| Q
+    D -.->|PR event| Skip([deploy skipped for PRs])
+```
+
+---
+
 ## How Authentication & Role Routing Work
 
 ```
