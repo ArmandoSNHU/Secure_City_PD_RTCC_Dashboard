@@ -110,8 +110,6 @@ export default function Login({ onLogin }: Props) {
           backgroundSize: '48px 48px',
         }}
       />
-      {/* Scanning neon line */}
-      <div className="scan-line" />
 
       <div className="relative w-full max-w-5xl flex flex-col xl:flex-row gap-6 items-start xl:items-center">
 

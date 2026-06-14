@@ -139,15 +139,16 @@ export default function AdminDashboard({ activeView }: Props) {
                       cx="50%"
                       cy="45%"
                       outerRadius={95}
-                      label={({ name, value }: { name: string; value: number }) => `${name} ${value}%`}
+                      label={({ name, value, x, y, textAnchor }: { name: string; value: number; x: number; y: number; textAnchor: 'inherit' | 'start' | 'middle' | 'end' }) => (
+                        <text x={x} y={y} textAnchor={textAnchor} fill="#e2e8f0" fontSize={11}>{`${name} ${value}%`}</text>
+                      )}
                       labelLine={{ stroke: '#475569' }}
-                      fontSize={11}
                     >
                       {agencies.map((entry, i) => (
                         <Cell key={entry.name} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="#0a1628" />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v}%`} />
+                    <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#ffffff' }} itemStyle={{ color: '#ffffff' }} formatter={(v: number) => `${v}%`} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

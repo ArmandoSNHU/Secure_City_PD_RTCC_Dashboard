@@ -45,24 +45,6 @@ body {
   animation: neon-pulse 3s ease-in-out infinite;
 }
 
-@keyframes scan {
-  0%   { top: -4px; opacity: 0; }
-  5%   { opacity: 1; }
-  95%  { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-
-/* Scanning horizontal line overlaid on the login grid background */
-.scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0, 212, 255, 0.5) 30%, rgba(0, 212, 255, 0.8) 50%, rgba(0, 212, 255, 0.5) 70%, transparent 100%);
-  animation: scan 5s linear infinite;
-  pointer-events: none;
-  z-index: 1;
-}
 
 @keyframes border-glow {
   0%, 100% { box-shadow: 0 0 6px rgba(0, 212, 255, 0.25), inset 0 0 6px rgba(0, 212, 255, 0.05); }
