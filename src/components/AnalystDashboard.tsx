@@ -1,23 +1,21 @@
-/**
- * Analyst dashboard — personal stats + monthly report submission. Only
- * reachable when the logged-in user's role is 'analyst'.
- *
- * DATA SCOPING: this component fetches only the logged-in analyst's record
- * via api.getAnalystById(user.id) — an analyst never receives other
- * analysts' data. (In production this scoping would also be enforced
- * server-side.)
- *
- * Two views:
- *  - 'mystats': four personal KPI cards + plain-language summary
- *  - 'submit':  monthly activity form -> mock API -> confirmation banner
- */
 import { useState, useEffect } from 'react'
+import type { User, AnalystStat, ReportForm, SubmissionResult } from '../types'
 import StatCard from './StatCard'
 import SkeletonCard from './SkeletonCard'
 import { api } from '../api/mockApi'
 
-// Blank form shape. Kept as a constant so submit can reset the form to it.
-const initialForm = {
+interface Props {
+  user: User
+  activeView: string
+}
+
+interface FormField {
+  key: keyof ReportForm
+  label: string
+  max: number
+}
+
+const initialForm: ReportForm = {
   lprHits: '',
   lookouts: '',
   federalRequests: '',
@@ -25,9 +23,7 @@ const initialForm = {
   intelRequests: '',
 }
 
-// The form is rendered from this array, so adding/removing a field is a
-// one-line change here instead of copy-pasting JSX.
-const formFields = [
+const formFields: FormField[] = [
   { key: 'lprHits', label: 'LPR Hits', max: 9999 },
   { key: 'lookouts', label: 'LPR Lookouts Issued', max: 999 },
   { key: 'federalRequests', label: 'Federal Agency Requests', max: 999 },
@@ -35,28 +31,26 @@ const formFields = [
   { key: 'intelRequests', label: 'Intelligence Requests', max: 999 },
 ]
 
-export default function AnalystDashboard({ user, activeView }) {
-  const [myStats, setMyStats] = useState(null)           // this analyst's record (null = loading)
-  const [form, setForm] = useState(initialForm)          // controlled form values
-  const [formErrors, setFormErrors] = useState({})       // per-field validation errors
-  const [submitting, setSubmitting] = useState(false)    // true while the report POST is in flight
-  const [confirmation, setConfirmation] = useState(null) // API confirmation -> success banner
+export default function AnalystDashboard({ user, activeView }: Props) {
+  const [myStats, setMyStats] = useState<AnalystStat | null>(null)
+  const [form, setForm] = useState<ReportForm>(initialForm)
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ReportForm, string>>>({})
+  const [submitting, setSubmitting] = useState(false)
+  const [confirmation, setConfirmation] = useState<SubmissionResult | null>(null)
 
-  // Fetch ONLY this analyst's record. user.id in the dependency array means
-  // a different analyst logging in would trigger a fresh fetch.
   useEffect(() => {
-    api.getAnalystById(user.id).then(setMyStats)
+    api.getAnalystById(user.id).then((stat) => {
+      if (stat) setMyStats(stat)
+    })
   }, [user.id])
 
-  // Generic change handler — updates one field by key, preserving the rest.
-  const handleChange = (key, value) => {
+  const handleChange = (key: keyof ReportForm, value: string) => {
     setForm((f) => ({ ...f, [key]: value }))
-    // Clear the error for this field as the user corrects it.
     if (formErrors[key]) setFormErrors((e) => ({ ...e, [key]: undefined }))
   }
 
-  const validate = () => {
-    const errors = {}
+  const validate = (): Partial<Record<keyof ReportForm, string>> => {
+    const errors: Partial<Record<keyof ReportForm, string>> = {}
     formFields.forEach(({ key, max }) => {
       const val = Number(form[key])
       if (form[key] === '') {
@@ -70,7 +64,7 @@ export default function AnalystDashboard({ user, activeView }) {
     return errors
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const errors = validate()
     if (Object.keys(errors).length > 0) {
@@ -79,11 +73,11 @@ export default function AnalystDashboard({ user, activeView }) {
     }
     setFormErrors({})
     setSubmitting(true)
-    setConfirmation(null) // clear any previous banner before re-submitting
+    setConfirmation(null)
     const result = await api.submitMonthlyReport(user.id, form)
     setSubmitting(false)
-    setConfirmation(result) // shows the green confirmation banner
-    setForm(initialForm)    // reset fields for the next entry
+    setConfirmation(result)
+    setForm(initialForm)
   }
 
   if (!myStats) {
@@ -100,7 +94,6 @@ export default function AnalystDashboard({ user, activeView }) {
     <div className="p-6 space-y-6">
       {activeView === 'mystats' && (
         <>
-          {/* Personal KPI cards — same StatCard component the admin view uses */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <StatCard label="My LPR Hits This Month" value={myStats.lprHits} icon="🚗" />
             <StatCard label="My Agency Assists" value={myStats.agencies} icon="🤝" />
@@ -108,7 +101,6 @@ export default function AnalystDashboard({ user, activeView }) {
             <StatCard label="Submissions This Month" value={myStats.submissions} icon="📝" />
           </div>
 
-          {/* Plain-language recap of the numbers above */}
           <div className="bg-navy-light border border-navy-lighter rounded-xl p-6">
             <h2 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">
               Performance Summary
@@ -135,7 +127,6 @@ export default function AnalystDashboard({ user, activeView }) {
             </p>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
-              {/* Fields generated from the formFields array above */}
               {formFields.map(({ key, label, max }) => (
                 <div key={key}>
                   <label htmlFor={key} className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
@@ -170,7 +161,6 @@ export default function AnalystDashboard({ user, activeView }) {
               </button>
             </form>
 
-            {/* Success banner — rendered only after the API confirms receipt */}
             {confirmation && (
               <div className="mt-5 bg-emerald-500/10 border border-emerald-500/40 rounded-lg px-4 py-3">
                 <p className="text-emerald-400 text-sm font-semibold">

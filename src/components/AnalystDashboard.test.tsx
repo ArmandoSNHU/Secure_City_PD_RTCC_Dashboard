@@ -1,22 +1,13 @@
-/**
- * AnalystDashboard tests — monthly submission form behavior.
- *
- * Covers:
- *  - form renders all five report fields
- *  - submitting shows the confirmation banner from the API response
- *  - fields reset after a successful submission
- */
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { User } from '../types'
 import AnalystDashboard from './AnalystDashboard'
 
-// Matches Maria Santos' record in mockData (id: 1)
-const maria = { id: 1, username: 'Maria Santos', name: 'Maria Santos', role: 'analyst' }
+const maria: User = { id: 1, username: 'Maria Santos', name: 'Maria Santos', role: 'analyst' }
 
 describe('AnalystDashboard monthly submission', () => {
   it('renders all five report fields', async () => {
     render(<AnalystDashboard user={maria} activeView="submit" />)
-    // Wait past the loading state
     expect(await screen.findByLabelText(/lpr hits/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/lpr lookouts issued/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/federal agency requests/i)).toBeInTheDocument()
@@ -35,7 +26,6 @@ describe('AnalystDashboard monthly submission', () => {
     await user.type(screen.getByLabelText(/intelligence requests/i), '2')
     await user.click(screen.getByRole('button', { name: /submit monthly report/i }))
 
-    // Confirmation banner appears with the analyst's name
     expect(await screen.findByText(/submission confirmed/i)).toBeInTheDocument()
     expect(screen.getByText(/thank you,\s*maria santos/i)).toBeInTheDocument()
   })
@@ -53,24 +43,21 @@ describe('AnalystDashboard monthly submission', () => {
     await user.click(screen.getByRole('button', { name: /submit monthly report/i }))
 
     await screen.findByText(/submission confirmed/i)
-    expect(lprInput).toHaveValue(null) // number input with '' value reads as null
+    expect(lprInput).toHaveValue(null)
   })
 
   it("shows only this analyst's personal stats on the stats view", async () => {
     render(<AnalystDashboard user={maria} activeView="mystats" />)
-    // '412' appears in both the KPI card and the summary sentence
-    expect(await screen.findAllByText('412')).not.toHaveLength(0) // Maria's LPR hits
+    expect(await screen.findAllByText('412')).not.toHaveLength(0)
     expect(screen.getByText(/my lpr hits this month/i)).toBeInTheDocument()
   })
 
   it('shows required errors when submitting an empty form', async () => {
     const user = userEvent.setup()
     render(<AnalystDashboard user={maria} activeView="submit" />)
-    await screen.findByLabelText(/lpr hits/i) // wait for loading to finish
+    await screen.findByLabelText(/lpr hits/i)
     await user.click(screen.getByRole('button', { name: /submit monthly report/i }))
-    // All five fields should show a "Required" error
     expect(await screen.findAllByText(/required/i)).toHaveLength(5)
-    // Confirmation banner must NOT appear
     expect(screen.queryByText(/submission confirmed/i)).not.toBeInTheDocument()
   })
 

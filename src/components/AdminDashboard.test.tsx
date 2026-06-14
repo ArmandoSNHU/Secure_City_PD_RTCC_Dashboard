@@ -1,17 +1,10 @@
-/**
- * AdminDashboard tests — KPI cards, chart headings, analyst table, and
- * the search/filter added in v1.4.
- *
- * Recharts is mocked: jsdom has no layout engine so ResponsiveContainer
- * renders at 0×0 and floods output with warnings. Chart rendering isn't
- * what these tests assert — data display and interactivity are.
- */
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AdminDashboard from './AdminDashboard'
 
 vi.mock('recharts', () => {
-  const Stub = ({ children }) => <div>{children}</div>
+  const Stub = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
   return {
     ResponsiveContainer: Stub,
     BarChart: Stub,
