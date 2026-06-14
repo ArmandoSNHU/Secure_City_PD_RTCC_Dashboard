@@ -2,6 +2,70 @@
 
 All notable changes to the Secure City RTCC Analytics Platform, tracked by development phase. Dates use YYYY-MM-DD.
 
+## [1.8.0] — 2026-06-14 — Back / Forward Navigation
+
+### Added
+- **Back / Forward buttons** in `TopNav` — `‹` and `›` sit left of the page title and step through each role's ordered view sequence: admin (overview → analysts), analyst (mystats → submit), architect (authflow → components → dataflow → cicd → techstack). Buttons disable automatically at sequence boundaries.
+- Purple role badge for the `architect` role in `TopNav`
+
+### Changed
+- `TopNav` now receives four new props: `canGoBack`, `canGoForward`, `onBack`, `onForward`
+- `App.tsx` computes the view sequence per role and derives back/forward state from `currentIndex`
+
+---
+
+## [1.7.0] — 2026-06-14 — Analyst Personal Charts
+
+### Added
+- **Monthly LPR trend line chart** on the analyst My Performance view — 6-month personal trend extracted from the shared `monthlyLprByAnalyst` dataset
+- **Team ranking bar chart** — shows all 5 analysts ranked by LPR hits so the analyst can see where they stand
+- **Rank badge** — displays the analyst's position (#1–#5) alongside their status
+- Parallel data fetch in `AnalystDashboard` using `Promise.all` to load personal stats, monthly trend, and team ranking in one go
+- Recharts mock added to `AnalystDashboard.test.tsx` to prevent `ResizeObserver` errors in jsdom
+
+### Fixed
+- `index.html` entry point updated from `main.jsx` → `main.tsx`
+- `vite.config.js` base path scoped to `NODE_ENV === 'production'` so local dev serves from `/` instead of the Pages subpath (fixes white-page on local dev)
+
+---
+
+## [1.6.0] — 2026-06-14 — System Architect Demo Account
+
+### Added
+- **`architect` role** added to the `Role` union type in `types.ts`
+- **`demo` / `Demo2026` account** (`role: architect`, `name: 'System Architect'`) in `mockData.ts` and `credentials` map
+- **`ArchitectView.tsx`** — new component with 5 interactive sections navigable via the sidebar:
+  - **Auth Flow** — 4 annotated code snippets (handleSubmit → api.login → App.handleLogin → useEffect fetch) with step badges and security design decisions
+  - **Component Tree** — visual hierarchy of every component with role gates and one-line responsibilities
+  - **Data Flow** — 4-column pipeline diagram (mockData → mockApi → useEffect → DOM) plus full API surface table (8 functions, return types, consumers)
+  - **CI/CD Pipeline** — 4-stage visual with actual workflow YAML excerpt
+  - **Tech Stack** — 8 technology cards each with "why chosen" and "how it's used here"
+- **Login demo panel** updated: architect account card with purple role badge; selected-state uses `border-purple-500/60`
+- **`Sidebar.tsx`** updated: `architectItems` array with 5 nav entries (Auth Flow, Component Tree, Data Flow, CI/CD Pipeline, Tech Stack)
+- **`App.tsx`** updated: 5 new `ViewId` values, 5 new `viewTitles` entries, architect branch in `handleLogin` routing
+
+---
+
+## [1.5.0] — 2026-06-13 — TypeScript Migration & Login Redesign
+
+### Added
+- **Full TypeScript migration**: all `.jsx` / `.js` source files renamed to `.tsx` / `.ts`
+- **`src/types.ts`** — shared interfaces (`User`, `AnalystStat`, `OverviewStats`, `MonthlyLprEntry`, `AgencyEntry`, `DailyAlertEntry`, `ReportForm`, `SubmissionResult`) and the `Role` / `AnalystStatus` union types used by every component and test
+- **`src/vite-env.d.ts`** — `/// <reference types="vite/client" />` so CSS imports are typed
+- **`tsconfig.json`** — strict TypeScript config: `strict`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, `noEmit`, `moduleResolution: "bundler"`, `"types": ["vitest/globals"]` (avoids importing `vi`/`describe` separately in every test)
+- **`src/components/SkeletonCard.tsx`** — animated pulse placeholder card matching `StatCard` layout; shown while API data is in flight
+- **Login redesign** (`Login.tsx`) — split-panel layout:
+  - Left: existing login form (functionally unchanged)
+  - Right: demo panel with 3 clickable account cards that auto-fill credentials, a 4-step system flow diagram (fn name · file · one-sentence description), a role-routing visual, and a tech stack badge row
+- **Passwords separated from `User` type**: moved from inline on user objects into a separate `credentials: Record<string, string>` export — TypeScript's type system now makes it structurally impossible to surface a password on a returned `User` object
+
+### Changed
+- `mockApi.ts` `login()` now looks up credentials via the separate map; `ESLint` config updated to add a TypeScript-specific block (`@typescript-eslint/parser`, `no-unused-vars: 'off'`, `no-undef: 'off'`)
+- All tests updated to `.tsx` with proper TypeScript types on fixtures, helpers, and mock stubs
+- Login test: "My Performance" text in the role-routing visual renamed to "Personal Stats" to avoid false-positive match in the logout test
+
+---
+
 ## [1.4.0] — 2026-06-13 — UX Polish & Coverage
 
 ### Added

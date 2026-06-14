@@ -3,6 +3,7 @@
 [![CI / Deploy](https://github.com/ArmandoSNHU/Secure_City_PD_RTCC_Dashboard/actions/workflows/deploy.yml/badge.svg)](https://github.com/ArmandoSNHU/Secure_City_PD_RTCC_Dashboard/actions/workflows/deploy.yml)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-00d4ff?logo=github)](https://armandosnhu.github.io/Secure_City_PD_RTCC_Dashboard/)
 [![Tests](https://img.shields.io/badge/tests-19%20passing-6E9F18?logo=vitest)](#testing--code-quality)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
 
 A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, built to demonstrate role-based authentication, data visualization, automated testing, CI/CD, and modern React architecture. All data is mocked — no real backend, no real law-enforcement data.
@@ -16,16 +17,17 @@ A mock full-stack analytics dashboard for a **Real Time Crime Center (RTCC)**, b
 
 | Skill area | What this project shows |
 |---|---|
-| **React 18 — hooks & state** | `useState` / `useEffect` across Login, Admin, and Analyst components; controlled forms; async data fetching with loading states |
-| **Role-based access control** | Auth state drives rendering — an analyst physically cannot reach admin views; the API strips passwords before returning user objects |
-| **API abstraction layer** | `mockApi.js` wraps all data behind async functions with simulated latency; swapping in a real backend is a one-file change |
-| **Data visualization** | Recharts grouped bar, pie, and line charts — all fed from plain JS objects, no transformation layer needed |
-| **Responsive UI / design system** | Tailwind CSS 4 with custom `@theme` tokens (`navy`, `accent`); stat cards collapse from 4 → 2 → 1 columns |
-| **Automated testing** | 12 Vitest + React Testing Library tests covering credential rejection, password stripping, role routing, data scoping, and form submission |
-| **CI/CD pipeline** | GitHub Actions quality gate (lint → tests) must pass before any build or deploy; PRs are gated but never deploy |
-| **Accessibility** | Every form input has a paired `<label htmlFor>` — accessible to screen readers and directly queryable in tests |
-| **Component architecture** | Shared `StatCard`, inline SVG `ShieldLogo`, view-array-driven form fields — DRY without premature abstraction |
-| **Dev tooling** | ESLint flat config, Prettier, `npm ci` lockfile installs, separate `vitest.config.js` to avoid Tailwind/base-path leaking into tests |
+| **React 18 — hooks & state** | `useState` / `useEffect` across Login, Admin, Analyst, and Architect components; controlled forms; parallel async data fetching with loading states |
+| **TypeScript — strict mode** | Full `.tsx`/`.ts` codebase; shared `types.ts`; `strict`, `noUnusedLocals`, `noUnusedParameters`; passwords structurally excluded from the `User` interface |
+| **Role-based access control** | Three roles (`admin`, `analyst`, `architect`) — auth state drives rendering; an analyst cannot reach admin views; the API strips passwords before returning user objects |
+| **API abstraction layer** | `mockApi.ts` wraps all data behind async functions with simulated latency; swapping in a real backend is a one-file change |
+| **Data visualization** | Recharts grouped bar, pie, and line charts — admin center-wide charts and analyst personal monthly trend + team ranking; all WCAG-accessible via `sr-only` data tables |
+| **Responsive UI / design system** | Tailwind CSS 4 with custom `@theme` tokens (`navy`, `accent`, `purple`); stat cards collapse from 4 → 2 → 1 columns |
+| **Automated testing** | 19 Vitest + React Testing Library tests covering credential rejection, password stripping, role routing, data scoping, form validation, and table filtering |
+| **CI/CD pipeline** | GitHub Actions quality gate (lint → tsc → tests) must pass before any build or deploy; PRs are gated but never deploy |
+| **Accessibility** | Every form input has a paired `<label htmlFor>`; Recharts visuals have `aria-hidden` wrappers with `sr-only` data tables for screen readers |
+| **Component architecture** | Shared `StatCard` / `SkeletonCard`, inline SVG `ShieldLogo`, role-derived nav sequences, back/forward navigation — DRY without premature abstraction |
+| **Dev tooling** | ESLint flat config with `@typescript-eslint/parser`, Prettier, `npm ci` lockfile installs, `vitest/globals` in `tsconfig.json` types |
 
 ---
 
@@ -74,12 +76,13 @@ The goal was to build something that *behaves* like a production app (async API 
 
 | Technology | What it does here | Why it was chosen |
 |---|---|---|
-| **React 18 (hooks only)** | All UI and state | Function components with `useState`/`useEffect` are the modern standard. No class components, no Redux — the state here (logged-in user, active view, fetched data, form values) is small enough that lifting it into `App.jsx` and passing props down is simpler and easier to reason about than adding a state library. |
-| **Vite 5** | Dev server + build tool | Near-instant startup and hot module replacement. Chosen over Create React App (deprecated) and Webpack (slower, more config). Zero config needed beyond two plugins. |
+| **React 18 (hooks only)** | All UI and state | Function components with `useState`/`useEffect` are the modern standard. No class components, no Redux — the state here (logged-in user, active view, fetched data, form values) is small enough that lifting it into `App.tsx` and passing props down is simpler and easier to reason about than adding a state library. |
+| **TypeScript (strict)** | Type safety across every file | `strict` + `noUnusedLocals` + `noUnusedParameters` eliminates whole classes of runtime bugs at compile time. Shared `types.ts` means every component and test speaks the same type language. Passwords are structurally excluded from the `User` interface — the type system enforces the security boundary. |
+| **Vite 5** | Dev server + build tool | Near-instant startup and hot module replacement. Chosen over Create React App (deprecated) and Webpack (slower, more config). Zero config needed beyond two plugins. Production base path scoped to `NODE_ENV === 'production'` so local dev serves from `/`. |
 | **Tailwind CSS 4** | All styling | Utility classes keep styles co-located with markup — no separate CSS files to keep in sync, no naming debates. v4's `@theme` block lets the project define custom design tokens (`navy`, `accent`) once and use them as native utilities (`bg-navy-light`, `text-accent`). Chosen over styled-components/CSS modules for speed of iteration on a dashboard with many small repeated UI patterns. |
-| **Recharts 2** | Bar, pie, and line charts | Declarative, composable chart components that accept plain arrays of objects — the same shape the mock API returns, so no data transformation layer is needed. Chosen over Chart.js (imperative canvas API, awkward in React) and D3 (overkill for standard chart types). `ResponsiveContainer` gives fluid resizing for free. |
-| **Mock REST API (plain JS module)** | Simulates a backend | `src/api/mockApi.js` wraps the mock data in `async` functions with artificial latency. This forces the UI to handle real-world conditions (loading states, awaited calls) and means swapping in a real backend later only requires changing one file — components never import data directly. |
-| **No router library** | View switching | React Router was deliberately skipped. There are only four views gated by two roles; a single `activeView` string in state with conditional rendering does the job with zero dependencies. If the app grew real URLs/deep-linking requirements, React Router would be the upgrade path. |
+| **Recharts 2** | Bar, pie, and line charts | Declarative, composable chart components that accept plain arrays of objects — the same shape the mock API returns, so no data transformation layer is needed. Chosen over Chart.js (imperative canvas API, awkward in React) and D3 (overkill for standard chart types). `ResponsiveContainer` gives fluid resizing for free. Each chart has an `aria-hidden` wrapper and an `sr-only` data table for accessibility. |
+| **Mock REST API (TypeScript module)** | Simulates a backend | `src/api/mockApi.ts` wraps the mock data in fully-typed `async` functions with artificial latency. This forces the UI to handle real-world conditions (loading states, awaited calls) and means swapping in a real backend later only requires changing one file — components never import data directly. |
+| **No router library** | View switching | React Router was deliberately skipped. A single `activeView` string in state with conditional rendering does the job with zero dependencies, and back/forward navigation is handled by role-specific view sequences in `App.tsx`. If the app grew real URLs/deep-linking requirements, React Router would be the upgrade path. |
 
 ---
 
@@ -89,36 +92,42 @@ The goal was to build something that *behaves* like a production app (async API 
 Secure_City_PD_RTCC_Dashboard/
 ├── index.html                  # HTML shell; mounts React at #root
 ├── package.json                # Dependencies and npm scripts
-├── vite.config.js              # Vite config: React + Tailwind plugins, Pages base path
+├── vite.config.js              # Vite: React + Tailwind plugins; base path production-only
 ├── vitest.config.js            # Test runner config (jsdom, globals, setup file)
-├── eslint.config.js            # ESLint flat config (correctness rules only)
+├── tsconfig.json               # Strict TypeScript: noEmit, noUnused*, vitest/globals types
+├── eslint.config.js            # ESLint flat config: JS + TS blocks, @typescript-eslint/parser
 ├── .prettierrc.json            # Prettier formatting rules
 ├── CHANGELOG.md                # Development progress by phase
 ├── .gitignore                  # Excludes node_modules, dist, local files
 ├── .github/workflows/
-│   └── deploy.yml              # CI/CD: quality gate -> build -> Pages deploy
+│   └── deploy.yml              # CI/CD: lint + tsc + tests → build → Pages deploy
 ├── docs/screenshots/           # README screenshot images
 └── src/
-    ├── main.jsx                # Entry point; renders <App/> into the DOM
+    ├── main.tsx                # Entry point; renders <App/> into the DOM
+    ├── vite-env.d.ts           # /// <reference types="vite/client" /> for CSS imports
     ├── index.css               # Tailwind import + @theme design tokens + body defaults
-    ├── App.jsx                 # Root component: auth state + role-based routing
-    ├── App.test.jsx            # Integration tests: login -> routing -> logout
+    ├── types.ts                # Shared interfaces and union types (Role, User, AnalystStat…)
+    ├── App.tsx                 # Root: auth state, role routing, back/forward nav sequences
+    ├── App.test.tsx            # Integration tests: login → routing → logout
     ├── test/
-    │   └── setup.js            # Registers jest-dom matchers before each test file
+    │   └── setup.ts            # Registers jest-dom matchers before each test file
     ├── api/
-    │   └── mockApi.js          # Fake REST layer (login, stats, charts, submissions)
+    │   └── mockApi.ts          # Typed REST layer (login, stats, charts, submissions)
     ├── data/
-    │   └── mockData.js         # All mock records: users, stats, chart datasets
+    │   └── mockData.ts         # All mock records + credentials map (separate from User type)
     └── components/
-        ├── Login.jsx           # Dark-themed login screen with credential validation
-        ├── Login.test.jsx      # Credential validation + password-stripping tests
-        ├── Sidebar.jsx         # Role-aware navigation + logout
-        ├── TopNav.jsx          # Sticky header: view title, user name, role badge
-        ├── AdminDashboard.jsx  # Center-wide stats, 3 charts, analyst table
-        ├── AnalystDashboard.jsx# Personal stats + monthly submission form
-        ├── AnalystDashboard.test.jsx # Submission form behavior tests
-        ├── StatCard.jsx        # Reusable KPI card (icon, value, label)
-        └── ShieldLogo.jsx      # Inline SVG police shield, used on login + sidebar
+        ├── Login.tsx           # Split-panel: login form + demo account cards + system flow
+        ├── Login.test.tsx      # Credential validation + password-stripping tests
+        ├── Sidebar.tsx         # Role-aware navigation (admin/analyst/architect) + logout
+        ├── TopNav.tsx          # Sticky header: back/forward buttons, view title, role badge
+        ├── AdminDashboard.tsx  # Center-wide stats, 3 charts, analyst table + CSV export
+        ├── AdminDashboard.test.tsx # KPI cards, chart headings, table filter tests
+        ├── AnalystDashboard.tsx# Personal stats + charts + team ranking + submission form
+        ├── AnalystDashboard.test.tsx # Form behavior + validation + chart render tests
+        ├── ArchitectView.tsx   # Interactive architecture tour (5 sections, architect role)
+        ├── SkeletonCard.tsx    # Animated pulse placeholder while data loads
+        ├── StatCard.tsx        # Reusable KPI card (icon, value, label)
+        └── ShieldLogo.tsx      # Inline SVG police shield, used on login + sidebar
 ```
 
 ### File-by-file detail
@@ -157,7 +166,7 @@ Secure_City_PD_RTCC_Dashboard/
 
 **`src/components/Sidebar.jsx`** — Receives the user and renders a different nav list per role (admin: Command Overview / Analyst Activity; analyst: My Performance / Monthly Submission). The active item is highlighted with the accent color. Logout button at the bottom simply clears the user state in `App`.
 
-**`src/components/TopNav.jsx`** — Sticky header showing the current view title, the logged-in user's name, a color-coded role badge (amber = admin, blue = analyst), and an initials avatar derived from the user's name.
+**`src/components/TopNav.tsx`** — Sticky header with back (‹) and forward (›) navigation buttons that step through each role's ordered view sequence. Also shows the current view title, the logged-in user's name, a color-coded role badge (amber = admin, blue = analyst, purple = architect), and an initials avatar.
 
 **`src/components/AdminDashboard.jsx`** — Fetches all five datasets in parallel in one `useEffect`, holding each in its own state slice. Renders:
 - Four `StatCard`s (always visible).
@@ -187,24 +196,27 @@ flowchart TD
     E -->|No| F[throw Error]
     F --> G[setError → red alert]
     G --> B
-    E -->|Yes| H[destructure password out\nreturn safe User object]
+    E -->|Yes| H[password stripped\nreturn safe User object]
     H --> I[App.handleLogin\nApp.tsx]
     I --> J{user.role?}
     J -->|admin| K[setActiveView → overview\nAdminDashboard.tsx]
     J -->|analyst| L[setActiveView → mystats\nAnalystDashboard.tsx]
-    K --> M[Command Overview\n4 KPIs · 3 charts · analyst table\nsearch filter · CSV export]
-    L --> N[My Performance\npersonal KPIs · monthly form\ndata scoped to user.id]
+    J -->|architect| M[setActiveView → authflow\nArchitectView.tsx]
+    K --> N[Command Overview\n4 KPIs · 3 charts · analyst table\nsearch filter · CSV export]
+    L --> O[My Performance\npersonal KPIs · trend chart\nteam ranking · monthly form]
+    M --> P[Interactive Architecture Tour\nAuth Flow · Components · Data Flow\nCI/CD · Tech Stack]
 ```
 
 ### Component Tree
 
 ```mermaid
 graph TD
-    App[App.tsx\nauth state · role routing] --> Login[Login.tsx\ncontrolled form · demo panel]
+    App[App.tsx\nauth state · role routing · back/forward nav] --> Login[Login.tsx\ncontrolled form · demo panel · flowchart]
     App --> Sidebar[Sidebar.tsx\nrole-aware nav · logout]
-    App --> TopNav[TopNav.tsx\nsticky header · role badge]
-    App --> Admin[AdminDashboard.tsx\ncenter-wide data]
-    App --> Analyst[AnalystDashboard.tsx\npersonal data only]
+    App --> TopNav[TopNav.tsx\nback/forward buttons · title · role badge]
+    App --> Admin[AdminDashboard.tsx\ncenter-wide data · CSV export]
+    App --> Analyst[AnalystDashboard.tsx\npersonal data · charts · form]
+    App --> Arch[ArchitectView.tsx\ninteractive architecture tour]
     Admin --> SC[StatCard.tsx\nreusable KPI card]
     Admin --> SK[SkeletonCard.tsx\nloading placeholder]
     Analyst --> SC
@@ -314,16 +326,18 @@ This one-directional flow (data down via props, events up via callbacks) is plai
 
 ---
 
-## The Two Dashboards
+## The Three Role Views
 
-| | Admin | Analyst |
-|---|---|---|
-| Landing view | Command Overview | My Performance |
-| KPI cards | Center-wide (1,847 LPR hits, 12 agencies, 5 analysts, 234 alerts) | Personal only (own LPR hits, agency assists, lookouts, submissions) |
-| Charts | Bar (6-month LPR by analyst), Pie (agency breakdown), Line (daily alerts) | — |
-| Table | All-analyst activity with status pills | — |
-| Form | — | Monthly activity submission with confirmation |
-| Data scope | Everything | Only their own record, fetched by their user id |
+| | Admin | Analyst | Architect |
+|---|---|---|---|
+| Landing view | Command Overview | My Performance | Auth Flow |
+| KPI cards | Center-wide (1,847 LPR hits, 12 agencies, 5 analysts, 234 alerts) | Personal only (own LPR hits, agency assists, lookouts, submissions) | — |
+| Charts | Bar (6-month LPR by analyst), Pie (agency breakdown), Line (daily alerts) | Line (personal monthly trend), Bar (team ranking) | — |
+| Table | All-analyst activity with status pills, search filter | — | API surface table (8 functions) |
+| Form | — | Monthly activity submission with validation + confirmation | — |
+| CSV export | Yes — analyst table | — | — |
+| Data scope | Everything | Only their own record, fetched by `user.id` | Static — architecture diagrams |
+| Nav sections | 2 (overview, analysts) | 2 (mystats, submit) | 5 (authflow, components, dataflow, cicd, techstack) |
 
 ---
 
@@ -352,10 +366,10 @@ Layout: fixed 16rem sidebar + fluid main column; stat-card grids collapse from 4
 
 | Suite | What it proves |
 |---|---|
-| `src/components/Login.test.jsx` | Bad credentials show the API error and never log in; valid credentials return a user object **with the password stripped**; username matching is case-insensitive |
-| `src/App.test.jsx` | Logged-out users only see the login screen; admin lands on Command Overview with center-wide stats; an analyst lands on My Performance and **cannot see admin views or other analysts' data**; logout fully returns to the login wall |
-| `src/components/AnalystDashboard.test.jsx` | Form renders all five fields, submits and shows the confirmation banner, resets afterward; empty-form shows required errors; over-max value shows the per-field maximum error |
-| `src/components/AdminDashboard.test.jsx` | KPI cards render after data loads; chart headings appear in overview; all five analysts render in the table; name filter shows only matching rows; clearing the filter restores all rows |
+| `src/components/Login.test.tsx` | Bad credentials show the API error and never log in; valid credentials return a user object **with the password stripped**; username matching is case-insensitive |
+| `src/App.test.tsx` | Logged-out users only see the login screen; admin lands on Command Overview with center-wide stats; an analyst lands on My Performance and **cannot see admin views or other analysts' data**; logout fully returns to the login wall |
+| `src/components/AnalystDashboard.test.tsx` | Form renders all five fields, submits and shows the confirmation banner, resets afterward; empty-form shows required errors; over-max value shows the per-field maximum error |
+| `src/components/AdminDashboard.test.tsx` | KPI cards render after data loads; chart headings appear in overview; all five analysts render in the table; name filter shows only matching rows; clearing the filter restores all rows |
 
 Recharts is mocked in the App suite because jsdom has no layout engine — chart internals aren't what those tests assert; routing and data scoping are.
 
@@ -383,7 +397,7 @@ npm run format:check
 Every push to `main` (and every pull request) runs the GitHub Actions pipeline in `.github/workflows/deploy.yml`:
 
 ```
-push/PR ──▶ quality (lint + 12 tests) ──▶ build (vite build) ──▶ deploy (GitHub Pages)
+push/PR ──▶ quality (lint + tsc + 19 tests) ──▶ build (vite build) ──▶ deploy (GitHub Pages)
                   │ fails?                                            │
                   ▼                                                   ▼
             nothing deploys                            https://armandosnhu.github.io/...
@@ -401,9 +415,9 @@ Design decisions:
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm test         # run the test suite
-npm run lint     # lint check
+npm run dev      # http://localhost:5174/
+npm test         # run the test suite (19 tests)
+npm run lint     # lint check (ESLint + @typescript-eslint)
 npm run build    # production build to dist/
 npm run preview  # serve the production build locally
 ```
@@ -414,14 +428,17 @@ Requires Node 18+.
 
 ## Test Credentials
 
-| Role | Username | Password |
-|---|---|---|
-| Admin | `admin` | `SecureCity2026` |
-| Analyst | `Maria Santos` | `analyst01` |
-| Analyst | `James Rivera` | `analyst02` |
-| Analyst | `Carlos Vega` | `analyst03` |
-| Analyst | `Priya Nair` | `analyst04` |
-| Analyst | `Derek Thompson` | `analyst05` |
+| Role | Username | Password | Landing view |
+|---|---|---|---|
+| Admin | `admin` | `SecureCity2026` | Command Overview — center-wide KPIs, 3 charts, analyst table, CSV export |
+| Analyst | `Maria Santos` | `analyst01` | My Performance — personal KPIs, monthly trend chart, team ranking |
+| Analyst | `James Rivera` | `analyst02` | My Performance — personal KPIs, monthly trend chart, team ranking |
+| Analyst | `Carlos Vega` | `analyst03` | My Performance — personal KPIs, monthly trend chart, team ranking |
+| Analyst | `Priya Nair` | `analyst04` | My Performance — personal KPIs, monthly trend chart, team ranking |
+| Analyst | `Derek Thompson` | `analyst05` | My Performance — personal KPIs, monthly trend chart, team ranking |
+| Architect | `demo` | `Demo2026` | Interactive Architecture Tour — Auth Flow, Component Tree, Data Flow, CI/CD, Tech Stack |
+
+> All accounts can be auto-filled by clicking their card on the right side of the login screen.
 
 ---
 
@@ -456,3 +473,7 @@ The project was built in deliberate phases — see **[CHANGELOG.md](CHANGELOG.md
 | 1.2.0 | Deployment: Vite base path + GitHub Actions deploy to GitHub Pages |
 | 1.3.0 | Quality engineering: 12 Vitest/RTL tests, ESLint + Prettier, CI quality gate, accessibility (label/input pairing), badges & screenshots |
 | 1.4.0 | UX polish: skeleton loaders, analyst table search/filter, form validation with inline errors; 19 tests across 4 suites |
+| 1.5.0 | TypeScript migration: full `.tsx`/`.ts` codebase, shared `types.ts`, strict tsconfig, login redesign with demo panel + system flow diagram |
+| 1.6.0 | Architect account: `demo`/`Demo2026` role with interactive 5-section architecture tour (ArchitectView.tsx) |
+| 1.7.0 | Analyst personal charts: monthly LPR trend, team ranking bar chart, rank badge; local dev base path fix |
+| 1.8.0 | Back/forward navigation buttons in TopNav; purple architect role badge |
