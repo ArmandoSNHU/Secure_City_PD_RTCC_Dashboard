@@ -1,7 +1,23 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { User } from '../types'
 import AnalystDashboard from './AnalystDashboard'
+
+vi.mock('recharts', () => {
+  const Stub = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
+  return {
+    ResponsiveContainer: Stub,
+    LineChart: Stub,
+    Line: Stub,
+    BarChart: Stub,
+    Bar: Stub,
+    XAxis: Stub,
+    YAxis: Stub,
+    CartesianGrid: Stub,
+    Tooltip: Stub,
+  }
+})
 
 const maria: User = { id: 1, username: 'Maria Santos', name: 'Maria Santos', role: 'analyst' }
 

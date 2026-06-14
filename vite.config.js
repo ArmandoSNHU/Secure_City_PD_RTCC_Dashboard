@@ -14,7 +14,10 @@ export default defineConfig({
   // (https://armandosnhu.github.io/Secure_City_PD_RTCC_Dashboard/), so all
   // built asset URLs must be prefixed with the repo name. Local dev is
   // unaffected — Vite still serves at http://localhost:5173/.
-  base: '/Secure_City_PD_RTCC_Dashboard/',
+  base: process.env.NODE_ENV === 'production' ? '/Secure_City_PD_RTCC_Dashboard/' : '/',
+  server: {
+    port: 5174,
+  },
   plugins: [
     react(),       // JSX transform + React Fast Refresh (hot reload that preserves state)
     tailwindcss(), // Tailwind CSS v4 first-party plugin (replaces the old PostCSS setup)
