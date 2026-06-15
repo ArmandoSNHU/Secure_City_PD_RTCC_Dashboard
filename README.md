@@ -25,8 +25,6 @@ RTCC supervisors currently compile analyst activity reports by hand — collecti
 
 **Differentiator vs. ArcGIS / Esri:** ArcGIS maps *where* crime happens. This platform tracks *how the team is performing* — the accountability layer that justifies RTCC budget and headcount to city leadership.
 
-For go-to-market strategy and agency sales planning, see [`market-plan.md`](market-plan.md).
-For full technical architecture and product roadmap, see [`codex.md`](codex.md).
 
 ---
 
