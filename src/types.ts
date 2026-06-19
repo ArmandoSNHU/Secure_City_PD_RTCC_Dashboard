@@ -23,6 +23,17 @@ export interface OverviewStats {
   agenciesAssisted: number
   activeAnalysts: number
   alertsGenerated: number
+  trends: {
+    totalLprHits: number
+    agenciesAssisted: number
+    activeAnalysts: number
+    alertsGenerated: number
+  }
+}
+
+export interface AnalystGoal {
+  analystId: number
+  monthlyLprTarget: number
 }
 
 export interface MonthlyLprEntry {
